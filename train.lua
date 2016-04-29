@@ -1,7 +1,7 @@
 require 'xlua'
 require 'optim'
 require 'nn'
-dofile 'data/gender.lua'   --load data 
+dofile 'data/expression.lua'   --load data 
 local c = require 'trepl.colorize'
 
 opt = lapp[[
@@ -14,6 +14,7 @@ opt = lapp[[
    --epoch_step               (default 25)          epoch step
    --max_epoch                (default 300)           maximum number of iterations
    --backend                  (default nn)            backend
+   --model                    (default expression)
 ]]
 
 
@@ -39,11 +40,33 @@ do -- data augmentation module
     return self.output
   end
 end
+do -- data augmentation module
+  local BatchVlip,parent = torch.class('nn.BatchVlip', 'nn.Module')
+
+  function BatchVlip:__init()
+    parent.__init(self)
+    self.train = true
+  end
+
+  function BatchVlip:updateOutput(input)
+    if self.train then
+      local bs = input:size(1)
+      local flip_mask = torch.randperm(bs):le(bs/2)
+      for i=1,input:size(1) do
+        if flip_mask[i] == 1 then image.vflip(input[i], input[i]) end
+      end
+    end
+    self.output:set(input)
+    return self.output
+  end
+end
+
 
 print(c.blue '==>' ..' configuring model')
-model = nn.Sequential()
+local model = nn.Sequential()
 model:add(nn.BatchFlip():float())
-model:add(dofile('model.lua'))
+--model:add(nn.BatchVlip():float())
+model:add(dofile('models/'..opt.model..'.lua'))
 
 collectgarbage()
 print(model)
@@ -98,7 +121,7 @@ end
 
 collectgarbage()
 print(c.blue '==>' ..' augmenting data')
---addall()   -- augmentate data 4 times
+addall()   -- augmentate data 4 times
 
 confusion = optim.ConfusionMatrix(10)
 
@@ -181,9 +204,8 @@ function val()
   model:evaluate()
   collectgarbage()
   print(c.blue '==>'.." valing")
-  local bs = 24
+  local bs = 2
   for i=1,testData.data:size(1),bs do
-    print(i)
     local outputs = model:forward(testData.data:narrow(1,i,bs))
     confusion:batchAdd(outputs, testData.labels:narrow(1,i,bs))
   end

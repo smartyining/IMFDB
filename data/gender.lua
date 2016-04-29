@@ -104,6 +104,7 @@ end
 
 
 trainData,testData = splitDataset()
+testDataraw = torch.Tensor(testData.data:size()):copy(testData.data)
 normalize()
 
 print(trainData.labels:mean())

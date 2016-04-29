@@ -4,8 +4,8 @@ require 'image'
 torch.setdefaulttensortype('torch.FloatTensor')
 
 -- load data file
-allData = torch.load('~/ml/data_good_resized.t7')
-allLabel = torch.load('~/ml/expression_label_good.t7')
+allData = torch.load('data/fh_expression_data.t7')
+allLabel = torch.load('data/fh_expression_label.t7')
 N_sample = #allLabel
 
 function splitDataset()
@@ -22,20 +22,39 @@ function splitDataset()
 
    for i=1, numTrain do
       train[i] = allData[shuffle[i]]:clone()
-     if allLabel[shuffle[i]]=='MALE' then
+     if allLabel[shuffle[i]]=='ANGER' then
 	      trainLabels[i]=1
-     else
-	      trainLabels[i]=0
+     elseif allLabel[shuffle[i]]=='HAPPINESS' then
+	      trainLabels[i]=2
+     elseif allLabel[shuffle[i]]=='SADNESS' then
+        trainLabels[i]=3
+     elseif allLabel[shuffle[i]]=='SURPRISE' then
+        trainLabels[i]=4
+     elseif allLabel[shuffle[i]]=='FEAR' then
+        trainLabels[i]=5
+    elseif allLabel[shuffle[i]]=='DISGUST' then
+        trainLabels[i]=6
+    elseif allLabel[shuffle[i]]=='NEUTRAL' then
+         trainLabels[i]=7
      end
    end
 
    for i=numTrain+1,numTrain+numTest do
       test[i-numTrain] = allData[shuffle[i]]:clone()
-      if allLabel[shuffle[i]]=='MALE' then
-         testLabels[i-numTrain]=1
-      else
-         testLabels[i-numTrain]=0
-      end   
+     if allLabel[shuffle[i]]=='ANGER' then
+        testLabels[i-numTrain]=1
+     elseif allLabel[shuffle[i]]=='HAPPINESS' then
+        testLabels[i-numTrain]=2
+     elseif allLabel[shuffle[i]]=='SADNESS' then
+        testLabels[i-numTrain]=3
+     elseif allLabel[shuffle[i]]=='SURPRISE' then
+        testLabels[i-numTrain]=4
+     elseif allLabel[shuffle[i]]=='FEAR' then
+        testLabels[i-numTrain]=5
+    elseif allLabel[shuffle[i]]=='DISGUST' then
+        testLabels[i-numTrain]=6
+    elseif allLabel[shuffle[i]]=='NEUTRAL' then
+         testLabels[i-numTrain]=7    end  
 end
 
    local trainData = {
